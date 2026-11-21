@@ -29,7 +29,7 @@ class PlaylistViewModel(private val repository: PlaylistRepository): ViewModel()
     }
     fun deletePlaylists(ids: Set<Long>) {
         viewModelScope.launch {
-            repository.deletePlaylists(ids.toList().toSet())
+            repository.deletePlaylists(ids)
         }
     }
     fun getPlaylistWithTracks(playlistId: Long) = repository.observePlaylistWithTracks(playlistId)

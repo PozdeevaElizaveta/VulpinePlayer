@@ -1,5 +1,6 @@
 package com.example.vulpineplayer.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -37,7 +38,7 @@ class LibraryViewModel(private val repository: TrackRepository): ViewModel() {
     }
     fun scanANDSaveMusic(){
         viewModelScope.launch {
-            repository.scanAndSaveMusic(context(StateFlow<List<TrackData>>))
+            repository.scanAndSaveMusic()
         }
     }
 }

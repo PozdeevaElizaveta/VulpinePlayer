@@ -25,7 +25,7 @@ interface PlaylistDao{
     suspend fun addTrackToPlaylist(crossRef: PlaylistTrackCrossRef)
 
     @Delete
-    suspend fun removeTrackFrompPlaylist(crossRef: PlaylistTrackCrossRef)
+    suspend fun removeTrackFromPlaylist(crossRef: PlaylistTrackCrossRef)
 
     @Query("DELETE FROM playlists WHERE id = :playlistId")
     suspend fun deletePlaylist(playlistId: Long)

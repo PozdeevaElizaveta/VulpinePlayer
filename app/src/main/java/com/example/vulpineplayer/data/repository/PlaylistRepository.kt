@@ -12,8 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-class PlaylistRepository(private val playlistDao: PlaylistDao,
-                      private val context: Context) {
+class PlaylistRepository(private val playlistDao: PlaylistDao) {
 
     fun observeAllPlaylists(): Flow<List<PlaylistData>>{
         return playlistDao.getAllPlaylists()
@@ -23,27 +22,21 @@ class PlaylistRepository(private val playlistDao: PlaylistDao,
     }
 
     suspend fun createPlaylist(name: String, colorHex: String) {
-        withContext(Dispatchers.IO) {
             val newPlaylist = PlaylistData(name=name, colorHEX = colorHex)
             playlistDao.insertPlaylist(newPlaylist)
-        }
     }
 
     suspend fun deletePlaylists(ids: Set<Long>){
-        withContext(Dispatchers.IO){
             playlistDao.deletePlaylistsByIds(ids.toList())
-        }
+
     }
 
     suspend fun addTrackToPlaylist(playlistId: Long, trackId: Long){
-        withContext(Dispatchers.IO){
             playlistDao.addTrackToPlaylist(PlaylistTrackCrossRef(playlistId, trackId))
-        }
+
     }
 
     suspend fun removeTrackFromPlaylist(playlistId: Long, trackId: Long){
-        withContext(Dispatchers.IO){
-            playlistDao.removeTrackFrompPlaylist(PlaylistTrackCrossRef(playlistId, trackId))
-        }
+            playlistDao.removeTrackFromPlaylist(PlaylistTrackCrossRef(playlistId, trackId))
     }
 }

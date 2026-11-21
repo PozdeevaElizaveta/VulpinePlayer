@@ -63,10 +63,9 @@ import com.example.vulpineplayer.ui.theme.AccentPrimary
 import com.example.vulpineplayer.ui.theme.AccentSecondary
 import com.example.vulpineplayer.ui.theme.TextMuted
 import com.example.vulpineplayer.viewmodel.LibraryViewModel
-import com.example.vulpineplayer.viewmodel.LibraryViewModelFactory
 import com.example.vulpineplayer.viewmodel.PlayerViewModel
 import com.example.vulpineplayer.viewmodel.PlaylistViewModel
-import com.example.vulpineplayer.viewmodel.PlaylistViewModelFactory
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -123,15 +122,13 @@ fun MainScreen(){
 
    /* Получаем базу*/
     val context = LocalContext.current
-    val database = (context.applicationContext as AppContainer).database
+    val container = (context.applicationContext as VulpineApplication).container
 
     /*Создаем ViewModel через Фабрику*/
     val libraryViewModel: LibraryViewModel = viewModel(
-      factory = LibraryViewModelFactory(database.trackDao())
-    )
+      factory = container.libraryViewModelFactory)
     val playlistViewModel: PlaylistViewModel=viewModel(
-        factory = PlaylistViewModelFactory(database.playlistDao())
-    )
+        factory = container.playlistViewModelFactory)
 
     val playerViewModel: PlayerViewModel = viewModel()
 
@@ -146,7 +143,7 @@ fun MainScreen(){
     ) {
         isGranted ->
         if (isGranted){
-            libraryViewModel.scanANDsaveMusic(context)
+            libraryViewModel.scanANDSaveMusic()
         }
     }
 /*Проверка на наличие разрешения на чтение музыки, если есть -сканируем, если нет - сист окно дать доступ*/
@@ -156,7 +153,7 @@ fun MainScreen(){
             android.Manifest.permission.READ_MEDIA_AUDIO
         )
         if (permissionCheckResult == PackageManager.PERMISSION_GRANTED){
-            libraryViewModel.scanANDsaveMusic(context)
+            libraryViewModel.scanANDSaveMusic()
         } else {
             permissionLauncher.launch(android.Manifest.permission.READ_MEDIA_AUDIO)
         }
