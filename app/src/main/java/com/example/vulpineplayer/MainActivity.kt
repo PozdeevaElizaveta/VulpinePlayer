@@ -1,5 +1,4 @@
 package com.example.vulpineplayer
-import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -7,11 +6,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -44,35 +39,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SearchBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.vulpineplayer.components.MiniPlayer
 import com.example.vulpineplayer.model.LibraryUiState
-import com.example.vulpineplayer.model.TrackData
 import com.example.vulpineplayer.screens.LibraryScreen
 import com.example.vulpineplayer.screens.NowPlayingScreen
 import com.example.vulpineplayer.screens.PlaylistsScreen
@@ -84,8 +67,6 @@ import com.example.vulpineplayer.viewmodel.LibraryViewModelFactory
 import com.example.vulpineplayer.viewmodel.PlayerViewModel
 import com.example.vulpineplayer.viewmodel.PlaylistViewModel
 import com.example.vulpineplayer.viewmodel.PlaylistViewModelFactory
-import kotlinx.coroutines.launch
-import androidx.compose.ui.input.pointer.pointerInput as pointerInput1
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -142,7 +123,7 @@ fun MainScreen(){
 
    /* Получаем базу*/
     val context = LocalContext.current
-    val database = (context.applicationContext as VulpineApplication).database
+    val database = (context.applicationContext as AppContainer).database
 
     /*Создаем ViewModel через Фабрику*/
     val libraryViewModel: LibraryViewModel = viewModel(

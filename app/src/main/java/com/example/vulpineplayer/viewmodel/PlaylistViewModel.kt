@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
+import com.example.vulpineplayer.data.repository.PlaylistRepository
 import com.example.vulpineplayer.model.PlaylistDao
 import com.example.vulpineplayer.model.PlaylistData
 import com.example.vulpineplayer.model.TrackDao
@@ -13,8 +14,8 @@ import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class PlaylistViewModel(private val dao: PlaylistDao): ViewModel() {
-    val playlists : StateFlow<List<PlaylistData>> = dao.getAllPlaylists()
+class PlaylistViewModel(private val repository: PlaylistRepository): ViewModel() {
+    val playlists : StateFlow<List<PlaylistData>> = repository.observeAllPlaylists()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -23,23 +24,23 @@ class PlaylistViewModel(private val dao: PlaylistDao): ViewModel() {
     fun createPlaylist(name: String, colorHEX: String){
         viewModelScope.launch {
             val newPlaylist = PlaylistData(name=name, colorHEX = colorHEX)
-            dao.insertPlaylist(newPlaylist)
+            repository.createPlaylist(name,colorHEX)
         }
     }
     fun deletePlaylists(ids: Set<Long>) {
         viewModelScope.launch {
-            dao.deletePlaylistsByIds(ids.toList())
+            repository.deletePlaylists(ids.toList().toSet())
         }
     }
-    fun getPlaylistWithTracks(playlistId: Long) = dao.getPlaylistWithTracks(playlistId)
+    fun getPlaylistWithTracks(playlistId: Long) = repository.observePlaylistWithTracks(playlistId)
 }
 
 //viewmodel ищет пустой конструктор, но унас он не пустой, фабрика передает параметр и инструкцию по использванию
-class PlaylistViewModelFactory(private val dao: PlaylistDao) : ViewModelProvider.Factory{
+class PlaylistViewModelFactory(private val repository: PlaylistRepository) : ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(PlaylistViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return PlaylistViewModel(dao) as T
+            return PlaylistViewModel(repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
