@@ -2,13 +2,11 @@ package com.example.vulpineplayer.model
 
 import android.content.ContentResolver
 import android.content.ContentUris
-import android.content.Context
 import android.provider.MediaStore
-import androidx.core.util.TimeUtils.formatDuration
-import java.util.concurrent.TimeUnit
+import com.example.vulpineplayer.data.db.Enity.TrackData
 
 
-    fun scanMusic(resolver : ContentResolver): List<TrackData>{
+fun scanMusic(resolver : ContentResolver): List<TrackData>{
 /*        ContentResolver — это специальный «ключ», который даёт приложению
         право читать данные из системных баз (включая MediaStore)*/
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI

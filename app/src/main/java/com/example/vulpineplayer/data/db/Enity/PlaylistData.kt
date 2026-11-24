@@ -1,4 +1,4 @@
-package com.example.vulpineplayer.model
+package com.example.vulpineplayer.data.db.Enity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

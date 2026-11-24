@@ -6,10 +6,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -54,17 +56,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.example.vulpineplayer.components.MiniPlayer
 import com.example.vulpineplayer.model.LibraryUiState
-import com.example.vulpineplayer.screens.LibraryScreen
-import com.example.vulpineplayer.screens.NowPlayingScreen
-import com.example.vulpineplayer.screens.PlaylistsScreen
+import com.example.vulpineplayer.ui.screens.library.LibraryScreen
+import com.example.vulpineplayer.ui.screens.nowplaying.NowPlayingScreen
+import com.example.vulpineplayer.ui.screens.playlists.PlaylistsScreen
 import com.example.vulpineplayer.ui.theme.AccentPrimary
 import com.example.vulpineplayer.ui.theme.AccentSecondary
 import com.example.vulpineplayer.ui.theme.TextMuted
-import com.example.vulpineplayer.viewmodel.LibraryViewModel
-import com.example.vulpineplayer.viewmodel.PlayerViewModel
-import com.example.vulpineplayer.viewmodel.PlaylistViewModel
+import com.example.vulpineplayer.ui.screens.library.LibraryViewModel
+import com.example.vulpineplayer.player.PlayerViewModel
+import com.example.vulpineplayer.ui.screens.playlists.PlaylistViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -90,7 +96,10 @@ fun BottomNavItem(
 ) {
     Column(
         modifier = modifier.fillMaxHeight()
-            .clickable { onClick() },
+            .clickable(
+                interactionSource = remember{ MutableInteractionSource()},
+                indication = null
+            ) { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -107,18 +116,20 @@ fun BottomNavItem(
     }
 }
 /*создаем конкретные наши кнопки*/
-data class NavItem(val icon: ImageVector,val title: String,val index: Int)
+data class NavItem(val icon: ImageVector,val title: String,val route: String)
 val items = listOf(
-    NavItem(Icons.Default.Home,"Home", 0),
-    NavItem(Icons.Default.MusicNote,"Library", 1),
-    NavItem(Icons.Default.Folder,"Playlists", 2)
+    NavItem(Icons.Default.Home,"Home", "home"),
+    NavItem(Icons.Default.MusicNote,"Library", "library"),
+    NavItem(Icons.Default.Folder,"Playlists", "playlists")
 )
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(){
-    val state = rememberSaveable { mutableStateOf(0) }
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
    /* Получаем базу*/
     val context = LocalContext.current
@@ -217,40 +228,55 @@ fun MainScreen(){
                             modifier = Modifier.weight(1f),
                             icon = item.icon,
                             title = item.title,
-                            isSelect = (state.value == item.index),
-                            onClick = { state.value = item.index }
+                            isSelect = currentRoute == item.route,
+                            onClick = {
+                                navController.navigate(item.route){
+                                    popUpTo(navController.graph.startDestinationId)
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
                         )
                     }
                 }
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier
             .padding(innerPadding)
             .fillMaxSize(),
-            contentAlignment = Alignment.Center){
-            when (state.value) {
-                0 -> {
+            contentAlignment = Alignment.Center,
+            enterTransition = { EnterTransition.None},
+            exitTransition = { ExitTransition.None},
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None }){
+            composable("home"){
                     Text("Home Page")
                 }
-                1 -> LibraryScreen(uiState = LibraryUiState.Success(tracks),
+            composable("library") {
+                LibraryScreen(
+                    uiState = LibraryUiState.Success(tracks),
                     currentTrack = currentTrack,
-                    onTrackClick = {clickedTrack->
+                    onTrackClick = { clickedTrack ->
                         val index = tracks.indexOf(clickedTrack)
-                        if (index!=-1){
-                            playerViewModel.playTrack(context,tracks,index)
+                        if (index != -1) {
+                            playerViewModel.playTrack(context, tracks, index)
                         }
                     })
-                2 -> {
-                    PlaylistsScreen(
-                        playlists=playlists,
-                        playlistViewModel=playlistViewModel,
-                        onPlaylistClick = {playlist->
-                            selectedPlaylistId = playlist.id
-                        },
-                        onCreatePlaylistClick = {}
-                    )
-                }
+            }
+
+            composable("playlists"){
+                PlaylistsScreen(
+                    playlists=playlists,
+                    playlistViewModel=playlistViewModel,
+                    onPlaylistClick = {playlist->
+                        selectedPlaylistId = playlist.id
+                    },
+                    onCreatePlaylistClick = {}
+                )
             }
         }
     }

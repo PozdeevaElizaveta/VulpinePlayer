@@ -4,12 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import com.example.vulpineplayer.data.repository.PlaylistRepository
 import com.example.vulpineplayer.data.repository.TrackRepository
-import com.example.vulpineplayer.model.AppDatabase
-import com.example.vulpineplayer.model.TrackDao
-import com.example.vulpineplayer.viewmodel.LibraryViewModel
-import com.example.vulpineplayer.viewmodel.LibraryViewModelFactory
-import com.example.vulpineplayer.viewmodel.PlaylistViewModel
-import com.example.vulpineplayer.viewmodel.PlaylistViewModelFactory
+import com.example.vulpineplayer.data.db.AppDatabase
+import com.example.vulpineplayer.ui.screens.library.LibraryViewModelFactory
+import com.example.vulpineplayer.ui.screens.playlists.PlaylistViewModelFactory
 
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext

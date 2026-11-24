@@ -1,6 +1,7 @@
 package com.example.vulpineplayer.model
 
 import androidx.compose.ui.graphics.Color
+import com.example.vulpineplayer.data.db.Enity.TrackData
 
 fun String.toColor(): Color {
     return try {

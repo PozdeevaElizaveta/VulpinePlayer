@@ -1,13 +1,11 @@
-package com.example.vulpineplayer.viewmodel
+package com.example.vulpineplayer.ui.screens.library
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.vulpineplayer.data.repository.TrackRepository
-import com.example.vulpineplayer.model.TrackDao
-import com.example.vulpineplayer.model.TrackData
+import com.example.vulpineplayer.data.db.Enity.TrackData
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn

@@ -1,14 +1,15 @@
-package com.example.vulpineplayer.viewmodel
+package com.example.vulpineplayer.player
 
 import android.content.Context
-import android.view.View
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import com.example.vulpineplayer.model.TrackData
+import com.example.vulpineplayer.data.db.Enity.TrackData
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -85,12 +86,12 @@ class PlayerViewModel : ViewModel() {
             exoPlayer = ExoPlayer.Builder(context).build()
         }
         val mediaItem = MediaItem.fromUri(track.uri)
-        exoPlayer?.addListener(object : androidx.media3.common.Player.Listener {
-            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                android.util.Log.e("PLAYER_TEST", "ОШИБКА ПЛЕЕРА: ${error.message}")
+        exoPlayer?.addListener(object : Player.Listener {
+            override fun onPlayerError(error: PlaybackException) {
+                Log.e("PLAYER_TEST", "ОШИБКА ПЛЕЕРА: ${error.message}")
             }
             override fun onPlaybackStateChanged(playbackState: Int) {
-                android.util.Log.d("PLAYER_TEST", "Состояние плеера изменилось: $playbackState")
+                Log.d("PLAYER_TEST", "Состояние плеера изменилось: $playbackState")
             }
         })
         exoPlayer?.setMediaItem(mediaItem)

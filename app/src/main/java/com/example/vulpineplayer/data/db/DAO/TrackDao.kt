@@ -1,9 +1,10 @@
-package com.example.vulpineplayer.model
+package com.example.vulpineplayer.data.db.DAO
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.vulpineplayer.data.db.Enity.TrackData
 import kotlinx.coroutines.flow.Flow
 
 @Dao /*(Data Access Object) — это интерфейс, то есть список правил, с которыми ты можешь обращаться к Room.*/

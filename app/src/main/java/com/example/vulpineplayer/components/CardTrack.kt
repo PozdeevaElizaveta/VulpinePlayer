@@ -32,8 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.vulpineplayer.R
-import com.example.vulpineplayer.model.TrackData
-import kotlin.math.max
+import com.example.vulpineplayer.data.db.Enity.TrackData
 
 enum class CardTrackMode{
     NORMAL,

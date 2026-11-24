@@ -1,7 +1,6 @@
 package com.example.vulpineplayer.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,10 +31,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.vulpineplayer.R
-import com.example.vulpineplayer.model.PlaylistData
-import com.example.vulpineplayer.model.PlaylistWithTracks
-import com.example.vulpineplayer.model.TrackData
-import com.example.vulpineplayer.model.isAllCached
+import com.example.vulpineplayer.data.db.Enity.PlaylistData
 import com.example.vulpineplayer.model.toColor
 
 enum class CardPlaylistMode{

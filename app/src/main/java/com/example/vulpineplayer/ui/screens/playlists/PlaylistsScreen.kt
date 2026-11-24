@@ -1,4 +1,4 @@
-package com.example.vulpineplayer.screens
+package com.example.vulpineplayer.ui.screens.playlists
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,8 +35,7 @@ import com.example.vulpineplayer.components.CardPlaylist
 import com.example.vulpineplayer.components.CardPlaylistMode
 import com.example.vulpineplayer.components.PlaylistSelectionMenu
 import com.example.vulpineplayer.components.SelectionTopBar
-import com.example.vulpineplayer.model.PlaylistData
-import com.example.vulpineplayer.viewmodel.PlaylistViewModel
+import com.example.vulpineplayer.data.db.Enity.PlaylistData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

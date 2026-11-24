@@ -1,16 +1,13 @@
-package com.example.vulpineplayer.viewmodel
+package com.example.vulpineplayer.ui.screens.playlists
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.vulpineplayer.data.repository.PlaylistRepository
-import com.example.vulpineplayer.model.PlaylistDao
-import com.example.vulpineplayer.model.PlaylistData
-import com.example.vulpineplayer.model.TrackDao
+import com.example.vulpineplayer.data.db.Enity.PlaylistData
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -24,7 +21,7 @@ class PlaylistViewModel(private val repository: PlaylistRepository): ViewModel()
     fun createPlaylist(name: String, colorHEX: String){
         viewModelScope.launch {
             val newPlaylist = PlaylistData(name=name, colorHEX = colorHEX)
-            repository.createPlaylist(name,colorHEX)
+            repository.createPlaylist(newPlaylist.name, newPlaylist.colorHEX)
         }
     }
     fun deletePlaylists(ids: Set<Long>) {

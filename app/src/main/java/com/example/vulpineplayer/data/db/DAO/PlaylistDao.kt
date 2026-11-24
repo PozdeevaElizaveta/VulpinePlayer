@@ -1,4 +1,4 @@
-package com.example.vulpineplayer.model
+package com.example.vulpineplayer.data.db.DAO
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -6,6 +6,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import com.example.vulpineplayer.data.db.Enity.PlaylistData
+import com.example.vulpineplayer.data.db.Enity.PlaylistTrackCrossRef
+import com.example.vulpineplayer.data.db.Enity.PlaylistWithTracks
 import kotlinx.coroutines.flow.Flow
 
 @Dao

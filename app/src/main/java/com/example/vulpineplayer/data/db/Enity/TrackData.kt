@@ -1,8 +1,7 @@
-package com.example.vulpineplayer.model
+package com.example.vulpineplayer.data.db.Enity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import kotlin.time.Duration
 
 @Entity(tableName = "tracks")
 data class TrackData (
@@ -13,7 +12,6 @@ data class TrackData (
     val duration: String,
     val durationMs: Long = 0L,
     val isCached: Boolean = false,
-    val uri: String) {
-}
+    val uri: String)
 
 

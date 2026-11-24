@@ -1,4 +1,4 @@
-package com.example.vulpineplayer.model
+package com.example.vulpineplayer.data.db.Enity
 
 import androidx.room.Embedded
 import androidx.room.Junction

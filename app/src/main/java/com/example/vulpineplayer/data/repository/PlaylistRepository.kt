@@ -1,16 +1,10 @@
 package com.example.vulpineplayer.data.repository
 
-import android.content.Context
-import com.example.vulpineplayer.model.PlaylistDao
-import com.example.vulpineplayer.model.PlaylistData
-import com.example.vulpineplayer.model.PlaylistTrackCrossRef
-import com.example.vulpineplayer.model.PlaylistWithTracks
-import com.example.vulpineplayer.model.TrackDao
-import com.example.vulpineplayer.model.TrackData
-import com.example.vulpineplayer.model.scanMusic
-import kotlinx.coroutines.Dispatchers
+import com.example.vulpineplayer.data.db.DAO.PlaylistDao
+import com.example.vulpineplayer.data.db.Enity.PlaylistData
+import com.example.vulpineplayer.data.db.Enity.PlaylistTrackCrossRef
+import com.example.vulpineplayer.data.db.Enity.PlaylistWithTracks
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
 
 class PlaylistRepository(private val playlistDao: PlaylistDao) {
 
