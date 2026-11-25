@@ -143,6 +143,10 @@ fun MainScreen(){
 
     val playerViewModel: PlayerViewModel = viewModel()
 
+    LaunchedEffect(playerViewModel) {
+        playerViewModel.connectToPlaybackService(context)
+    }
+
     val tracks by libraryViewModel.tracks.collectAsStateWithLifecycle()
     val playlists by playlistViewModel.playlists.collectAsStateWithLifecycle()
 
@@ -208,9 +212,9 @@ fun MainScreen(){
                         track = currentTrack!!,
                         isPlaying = isPlaying,
                         playerViewModel = playerViewModel,
-                        onPreviousClick = {playerViewModel.PlayPrevious(context)},
-                        onPlayPauseClick = { playerViewModel.PlayPause() },
-                        onNextClick = {playerViewModel.PlayNext(context)},
+                        onPreviousClick = {playerViewModel.playPrevious()},
+                        onPlayPauseClick = { playerViewModel.playPause() },
+                        onNextClick = {playerViewModel.playNext()},
                         onClick = { isNowPlayingOpen.value=true}
                     )
                 }
@@ -263,7 +267,7 @@ fun MainScreen(){
                     onTrackClick = { clickedTrack ->
                         val index = tracks.indexOf(clickedTrack)
                         if (index != -1) {
-                            playerViewModel.playTrack(context, tracks, index)
+                            playerViewModel.playTrack(tracks, index)
                         }
                     })
             }
@@ -291,9 +295,9 @@ fun MainScreen(){
                 track = currentTrack!!,
                 isPlaying = isPlaying,
                 playerViewModel = playerViewModel,
-                onPlayPauseClick = { playerViewModel.PlayPause() },
-                onNextClick = { playerViewModel.PlayNext(context) },
-                onPreviousClick = { playerViewModel.PlayPrevious(context) },
+                onPlayPauseClick = { playerViewModel.playPause() },
+                onNextClick = { playerViewModel.playNext() },
+                onPreviousClick = { playerViewModel.playPrevious() },
                 onSeek = { newProgress -> playerViewModel.seekTo(newProgress) },
                 onClose = { isNowPlayingOpen.value = false },
             )

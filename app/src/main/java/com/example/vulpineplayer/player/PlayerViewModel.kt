@@ -1,25 +1,32 @@
 package com.example.vulpineplayer.player
 
+import android.content.ComponentName
 import android.content.Context
+import androidx.media3.session.MediaController
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.SessionToken
 import com.example.vulpineplayer.data.db.Enity.TrackData
+import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class PlayerViewModel : ViewModel() {
-    private var exoPlayer: ExoPlayer? = null
+    private var mediaController: MediaController? = null
+
+    private var controllerFuture: ListenableFuture<MediaController>? = null
     /*Хранение списка треков в очереди*/
     private var queue : List<TrackData> = emptyList()
-    private var currentIndex: Int = -1
+
     /*  Храним текущий играющий трек*/
     private val _currentTrack = MutableStateFlow<TrackData?>(null)
     val currentTrack: StateFlow<TrackData?> = _currentTrack.asStateFlow()
@@ -39,84 +46,264 @@ class PlayerViewModel : ViewModel() {
         isUiPaused = paused
     }
 
-    /*расчет прогресса для прогресс-бара при проигрывании песни*/
-    init {
-        viewModelScope.launch {
-            while (true){
-                delay(250)
-                if (isUiPaused) continue
+    private val playerListener = object : Player.Listener {
 
-                val miniplayer = exoPlayer
-                if (miniplayer != null&&miniplayer.isPlaying){
-                    val currentPosition = miniplayer.currentPosition.toFloat()
-                    val duration = miniplayer.duration.toFloat()
+        // Плеер начал или прекратил воспроизведение.
+        override fun onPlayWhenReadyChanged(
+            playWhenReady: Boolean,
+            reason: Int
+        ) {
+            _isPlaying.value = playWhenReady
+        }
 
-                    if (duration>0){
-                        _progress.value = currentPosition / duration
+        // Переключился текущий трек.
+        override fun onMediaItemTransition(
+            mediaItem: MediaItem?,
+            reason: Int
+        ) {
+            updateCurrentTrack()
+            updatePlaybackInfo()
+        }
 
-                        _currentPositionMs.value = miniplayer.currentPosition
-                        _durationMs.value = miniplayer.duration
+        // Изменилось состояние плеера.
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            // Если очередь закончилась, показываем Play.
+            if (playbackState == Player.STATE_ENDED) {
+                _isPlaying.value = false
+            }
+
+            updatePlaybackInfo()
+
+            Log.d(
+                "PLAYER_TEST",
+                "Состояние плеера изменилось: $playbackState"
+            )
+        }
+
+        // Возникла ошибка воспроизведения.
+        override fun onPlayerError(error: PlaybackException) {
+            _isPlaying.value = false
+
+            Log.e(
+                "PLAYER_TEST",
+                "Ошибка плеера: ${error.message}",
+                error
+            )
+        }
+    }
+
+    fun connectToPlaybackService(context: Context) {
+
+        // Не создаём несколько подключений одновременно.
+        if (controllerFuture != null || mediaController != null) {
+            return
+        }
+
+        val appContext = context.applicationContext
+
+        // Адресуемся именно к нашему PlaybackService.
+        val sessionToken = SessionToken(
+            appContext,
+            ComponentName(
+                appContext,
+                PlaybackService::class.java
+            )
+        )
+
+        // Подключение асинхронное:
+        // контроллер появится не сразу.
+        val future = MediaController.Builder(
+            appContext,
+            sessionToken
+        ).buildAsync()
+
+        controllerFuture = future
+
+        future.addListener(
+            {
+                try {
+                    val controller = future.get()
+
+                    // ViewModel могла уничтожиться,
+                    // пока шло подключение.
+                    if (controllerFuture !== future) {
+                        return@addListener
+                    }
+
+                    mediaController = controller
+
+                    // Регистрируем слушатель один раз,
+                    // а не при каждом переключении трека.
+                    controller.addListener(playerListener)
+                    _isPlaying.value =
+                        controller.playWhenReady &&
+                                controller.playbackState != Player.STATE_ENDED
+
+                    // Получаем актуальное состояние сервиса.
+                    updateCurrentTrack()
+                    updatePlaybackInfo()
+
+                    Log.d(
+                        "PLAYER_TEST",
+                        "Подключение к PlaybackService успешно"
+                    )
+
+                } catch (e: Exception) {
+                    Log.e(
+                        "PLAYER_TEST",
+                        "Не удалось подключиться к PlaybackService",
+                        e
+                    )
+
+                    if (controllerFuture === future) {
+                        controllerFuture = null
                     }
                 }
-            }
-        }
+            },
+            ContextCompat.getMainExecutor(appContext)
+        )
     }
+
 /*    сохраняет список и говорит "включи трек под номером X*/
-    fun playTrack(context: Context, tracks: List<TrackData>, startIndex: Int) {
-        queue = tracks
-        PlayAtIndex(context, startIndex)
+fun playTrack(
+    tracks: List<TrackData>,
+    startIndex: Int
+) {
+    val controller = mediaController ?: run {
+        Log.e(
+            "PLAYER_TEST",
+            "Плеер ещё не подключён к сервису"
+        )
+        return
     }
-    fun PlayPause(){
-        val player = exoPlayer ?:return
-        if (player.isPlaying){
-            player.pause()
-            _isPlaying.value = false
+
+    if (tracks.isEmpty()) return
+    if (startIndex !in tracks.indices) return
+
+    queue = tracks
+
+    // Преобразуем собственные TrackData в MediaItem.
+    val mediaItems = tracks.map { track ->
+        MediaItem.fromUri(track.uri)
+    }
+
+    // Передаём сервису всю очередь и начальный индекс.
+    controller.setMediaItems(
+        mediaItems,
+        startIndex,
+        0L
+    )
+
+    controller.prepare()
+    controller.play()
+
+    _progress.value = 0f
+    _currentPositionMs.value = 0L
+}
+    fun playPause() {
+        val controller = mediaController ?: return
+
+        if (controller.playWhenReady) {
+            controller.pause()
         } else {
-            player.play()
-            _isPlaying.value = true
+            controller.play()
         }
     }
-    fun PlayAtIndex(context: Context, index: Int){
-        val track = queue.getOrNull(index)?:return
-        currentIndex = index
-        _currentTrack.value=track
-        _isPlaying.value = true
-        _progress.value = 0f
-        if (exoPlayer==null){
-            exoPlayer = ExoPlayer.Builder(context).build()
-        }
-        val mediaItem = MediaItem.fromUri(track.uri)
-        exoPlayer?.addListener(object : Player.Listener {
-            override fun onPlayerError(error: PlaybackException) {
-                Log.e("PLAYER_TEST", "ОШИБКА ПЛЕЕРА: ${error.message}")
-            }
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                Log.d("PLAYER_TEST", "Состояние плеера изменилось: $playbackState")
-            }
-        })
-        exoPlayer?.setMediaItem(mediaItem)
-        exoPlayer?.prepare()
-        exoPlayer?.play()
+    fun playAtIndex(index: Int) {
+        val controller = mediaController ?: return
 
+        if (index !in queue.indices) return
+
+        controller.seekTo(index, 0L)
+        controller.play()
     }
 
-    fun PlayNext(context: Context){
-        if(currentIndex< queue.size-1){
-            PlayAtIndex(context,currentIndex+1)
+
+    fun playNext() {
+        val controller = mediaController ?: return
+
+        if (controller.hasNextMediaItem()) {
+            controller.seekToNextMediaItem()
         }
     }
-    fun PlayPrevious(context: Context){
-        if(currentIndex>0){
-            PlayAtIndex(context,currentIndex-1)
+    fun playPrevious() {
+        val controller = mediaController ?: return
+
+        if (controller.hasPreviousMediaItem()) {
+            controller.seekToPreviousMediaItem()
         }
     }
-    fun seekTo(progress: Float){
-        val player = exoPlayer?:return
-        val duration = player.duration
-        if (duration>0){
-            val newPOsition = (duration*progress).toLong()
-            player.seekTo(newPOsition)
-            _progress.value=progress
+
+    fun seekTo(progress: Float) {
+        val controller = mediaController ?: return
+
+        val duration = controller.duration
+
+        if (duration <= 0L) return
+
+        // Ограничиваем значение диапазоном 0..1.
+        val safeProgress = progress.coerceIn(0f, 1f)
+
+        val newPosition = (
+                duration * safeProgress
+                ).toLong()
+
+        controller.seekTo(newPosition)
+
+        _progress.value = safeProgress
+        _currentPositionMs.value = newPosition
+    }
+    private fun updateCurrentTrack() {
+        val controller = mediaController ?: return
+
+        val index = controller.currentMediaItemIndex
+
+        _currentTrack.value = queue.getOrNull(index)
+    }
+    private fun updatePlaybackInfo() {
+        val controller = mediaController ?: return
+
+        val position = controller.currentPosition
+        val duration = controller.duration
+
+        _currentPositionMs.value = position
+
+        if (duration > 0L) {
+            _durationMs.value = duration
+
+            _progress.value = (
+                    position.toFloat() / duration.toFloat()
+                    ).coerceIn(0f, 1f)
+        } else {
+            _durationMs.value = 0L
+            _progress.value = 0f
         }
+    }
+    init {
+        viewModelScope.launch {
+            while (isActive) {
+                delay(250)
+
+                if (isUiPaused) continue
+
+                val controller = mediaController ?: continue
+
+                updatePlaybackInfo()
+            }
+        }
+    }
+    override fun onCleared() {
+        // ViewModel больше не должна получать события.
+        mediaController?.removeListener(playerListener)
+
+        // Освобождаем контроллер и отключаемся от сервиса.
+        controllerFuture?.let { future ->
+            MediaController.releaseFuture(future)
+        }
+
+        mediaController = null
+        controllerFuture = null
+
+        super.onCleared()
     }
 }

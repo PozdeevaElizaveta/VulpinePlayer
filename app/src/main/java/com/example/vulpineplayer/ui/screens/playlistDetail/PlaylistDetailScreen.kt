@@ -142,15 +142,16 @@ fun PlaylistDetailScreen(playlistWithTracks: PlaylistWithTracks?,
                    contentDescription = "Edit",
                    tint = if (isEditMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            val isThisPlaylistPlaying = isPlaying && currentTrack != null && tracks.any { it.id == currentTrack.id }
+            val isThisPlaylistPlaying = currentTrack != null && tracks.any { it.id == currentTrack.id }
             Box(
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
                     .clickable {if (isThisPlaylistPlaying) {
-                        playerViewModel.PlayPause()
+                        playerViewModel.playPause()
                     } else {
-                        playerViewModel.playTrack(context, tracks, 0)
+                        playerViewModel.playTrack(tracks = tracks,
+                            startIndex = 0)
                     }},
                 contentAlignment = Alignment.Center
             ) {
